@@ -2,18 +2,18 @@
   <div id="app">
     <h1>Hello Kendo UI for Vue!</h1>
     <p>
-      <DropDownList
+      <dropdownlist
         :data-items="categories"
         :data-item-key="'CategoryID'"
         :text-field="'CategoryName'"
         :default-item="defaultItems"
         @change="handleDropDownChange"
-      ></DropDownList>
+      ></dropdownlist>
       &nbsp; Selected category ID:
       <strong>{{ dropdownlistCategory }}</strong>
     </p>
 
-    <Grid
+    <grid
       :data-items="dataResult.data"
       :total="dataResult.total"
       :pageable="pageable"
@@ -31,7 +31,7 @@
           <input type="checkbox" :checked="props.dataItem.Discontinued" disabled />
         </td>
       </template>
-    </Grid>
+    </grid>
 
     <window v-if="windowVisible" :title="'Product Details'" @close="closeWindow" :height="250">
       <dl :style="{ 'text-align': 'left' }">
@@ -52,7 +52,7 @@ import { productsData } from './appdata/products';
 import { categoriesData } from './appdata/categories';
 import { process, DataResult, State, CompositeFilterDescriptor, SortDescriptor } from '@progress/kendo-data-query';
 import { Grid, GridDataStateChangeEvent, GridRowClickEvent, GridColumnProps } from '@progress/kendo-vue-grid';
-import { DropDownList, DropDownListChangeEvent } from '@progress/kendo-vue-dropdowns';
+import { DropDownList as dropdownlist, DropDownListChangeEvent } from '@progress/kendo-vue-dropdowns';
 import { Window } from '@progress/kendo-vue-dialogs';
 
 // Data and state references
@@ -93,7 +93,7 @@ onMounted(() => {
 
 // Methods
 const handleDropDownChange = (e: DropDownListChangeEvent) => {
-  dropdownlistCategory.value = e.target.value.CategoryName;
+  dropdownlistCategory.value = e.target.value.CategoryID;
   if (e.target.value.CategoryID !== null) {
     filter.value = {
       logic: 'and',
