@@ -310,29 +310,26 @@
   </div>
 </template>
 
-<script>
-import { provideLocalizationService } from "@progress/kendo-vue-intl";
+<script setup>
+import { computed, inject } from 'vue';
+import { provideLocalizationService } from '@progress/kendo-vue-intl';
 
-export default {
-  computed: {
-    getSourceMessage() {
-      return provideLocalizationService(this).toLanguageString(
-        "getSource",
-        "Get Source"
-      );
-    },
-    demoInfoMessage() {
-      return provideLocalizationService(this).toLanguageString(
-        "demoInfo",
-        "This demo application is built using the following Kendo UI for Vue components."
-      );
-    },
-  },
-  inject: {
-    kendoLocalizationService: { default: null },
-  },
-};
+// Injecting the localization service
+const kendoLocalizationService = inject('kendoLocalizationService', null);
+
+// Computed properties for localization messages
+const getSourceMessage = computed(() => {
+  return provideLocalizationService(kendoLocalizationService).toLanguageString('getSource', 'Get Source');
+});
+
+const demoInfoMessage = computed(() => {
+  return provideLocalizationService(kendoLocalizationService).toLanguageString(
+    'demoInfo',
+    'This demo application is built using the following Kendo UI for Vue components.'
+  );
+});
 </script>
 
 <style>
+/* Add your styles here if needed */
 </style>

@@ -23,7 +23,8 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed } from 'vue';
 import Header from "./components/Header.vue";
 import MenuNavContainer from "./components/MenuNavContainer";
 import { enComponentMessages, enCustomMessages } from "./messages/en-US";
@@ -32,8 +33,8 @@ import { frComponentMessages, frCustomMessages } from "./messages/fr";
 
 import {
   load,
-  LocalizationProvider,
-  IntlProvider,
+  LocalizationProvider as localization,
+  IntlProvider as intl,
   loadMessages,
 } from "@progress/kendo-vue-intl";
 import likelySubtags from "cldr-core/supplemental/likelySubtags.json";
@@ -77,54 +78,41 @@ loadMessages(esComponentMessages, "Spanish");
 loadMessages(frCustomMessages, "French");
 loadMessages(frComponentMessages, "French");
 
-export default {
-  name: "app",
-  components: {
-    Header,
-    MenuNavContainer,
-    localization: LocalizationProvider,
-    intl: IntlProvider,
-  },
-  methods: {
-    onLocaleChange(e) {
-      this.localizationLanguage = e.language;
-    },
-    onThemeChange(e) {
-      this.currentTheme = e;
-    },
-  },
-  computed: {
-    locale() {
-      if (this.localizationLanguage === "Spanish") {
-        return "es";
-      }
+// Reactive state
+const localizationLanguage = ref("en");
+const currentTheme = ref("Default");
 
-      if (this.localizationLanguage === "French") {
-        return "fr";
-      }
+// Computed property for locale
+const locale = computed(() => {
+  if (localizationLanguage.value === "Spanish") {
+    return "es";
+  }
+  if (localizationLanguage.value === "French") {
+    return "fr";
+  }
+  return "en";
+});
 
-      return "en";
-    },
-  },
-  data() {
-    return {
-      localizationLanguage: "en",
-      currentTheme: "Default",
-    };
-  },
+// Methods
+const onLocaleChange = (e) => {
+  localizationLanguage.value = e.language;
+};
+
+const onThemeChange = (e) => {
+  currentTheme.value = e;
 };
 </script>
 
 <style lang="scss">
 @import "./assets/styles/app.scss";
+
 .column {
   display: inline-block;
 }
 
-.column.content{
+.column.content {
   min-width: 500px;
 }
-
 
 .k-item.k-menu-item.k-drawer-item.k-state-selected {
   color: #ffffff;
