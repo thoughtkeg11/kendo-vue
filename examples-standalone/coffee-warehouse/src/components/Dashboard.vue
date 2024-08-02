@@ -37,17 +37,17 @@
     <div v-if="selectedIndex === 0">
       <Chart>
         <ChartTooltip :render="myToolTipTemplate">
-          <template v-slot:myToolTipTemplate="{ props = { point: {} } }">
+          <template #myToolTipTemplate="{ props = { point: {} } }">
             <div>
               {{
-                provideIntlService(this)
+                provideIntlService(kendoIntlService)
                   .formatDate(props.point.category, "MMMM yyyy")
                   .toUpperCase()
               }}
               <br />
               <div class="chart-tooltip">
                 {{
-                  provideIntlService(this).formatNumber(props.point.value, "n3")
+                  provideIntlService(kendoIntlService).formatNumber(props.point.value, "n3")
                 }}
               </div>
             </div>
@@ -84,17 +84,17 @@
     <div v-else>
       <Chart>
         <ChartTooltip :render="myToolTipLineTemplate">
-          <template v-slot:myToolTipLineTemplate="{ props = { point: {} } }">
+          <template #myToolTipLineTemplate="{ props = { point: {} } }">
             <div>
               {{
-                provideIntlService(this)
+                provideIntlService(kendoIntlService)
                   .formatDate(props.point.category, "MMMM yyyy")
                   .toUpperCase()
               }}
               <br />
               <div class="chart-tooltip">
                 {{
-                  provideIntlService(this).formatNumber(props.point.value, "n3")
+                  provideIntlService(kendoIntlService).formatNumber(props.point.value, "n3")
                 }}
               </div>
             </div>
@@ -132,7 +132,8 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, inject, onMounted } from 'vue';
 import {
   Chart,
   ChartSeries,
@@ -141,130 +142,112 @@ import {
   ChartCategoryAxisItem,
   ChartLegend,
   ChartTooltip,
-} from "@progress/kendo-vue-charts";
-import { Button, ButtonGroup } from "@progress/kendo-vue-buttons";
-import { DatePicker } from "@progress/kendo-vue-dateinputs";
+} from '@progress/kendo-vue-charts';
+import { Button as kButton, ButtonGroup as buttongroup } from '@progress/kendo-vue-buttons';
+import { DatePicker as datepicker } from '@progress/kendo-vue-dateinputs';
+import { provideIntlService, provideLocalizationService } from '@progress/kendo-vue-intl';
+import { orders } from '../assets/orders.js';
+import 'hammerjs';
 
-import {
-  provideIntlService,
-  provideLocalizationService,
-} from "@progress/kendo-vue-intl";
+// Remove props if unused
+// const props = defineProps({
+//   localizationLanguage: String,
+// });
 
-import { orders } from "../assets/orders.js";
-import "hammerjs";
+// Injected services
+const kendoIntlService = inject('kendoIntlService', null);
+const kendoLocalizationService = inject('kendoLocalizationService', null);
 
-export default {
-  props: {
-    localizationLanguage: String,
-  },
-  components: {
-    Chart,
-    ChartSeries,
-    ChartSeriesItem,
-    ChartCategoryAxis,
-    ChartCategoryAxisItem,
-    ChartLegend,
-    ChartTooltip,
-    "k-button": Button,
-    buttongroup: ButtonGroup,
-    datepicker: DatePicker,
-  },
-  inject: {
-    kendoIntlService: { default: null },
-    kendoLocalizationService: { default: null },
-  },
-  data: function () {
-    return {
-      selectedIndex: 0,
-      provideIntlService: provideIntlService,
-      myToolTipTemplate: "myToolTipTemplate",
-      myToolTipLineTemplate: "myToolTipLineTemplate",
-      orders: orders,
-      dateRange: {
-        start: new Date(2020, 0, 1),
-        end: new Date(2020, 4, 1),
-      },
-      series: null,
-      categories: null,
-    };
-  },
-  created() {
-    this.categories = this.orders.map((dataItem) => {
-      return dataItem.orderDate;
-    });
-    this.series = [
-      {
-        name: "Tiger Team",
-        data: this.fetchData(1),
-        color: "#FF6358",
-      },
-      {
-        name: "Lemon Team",
-        data: this.fetchData(2),
-        color: "#F7C62F",
-      },
-      {
-        name: "Organic Team",
-        data: this.fetchData(3),
-        color: "#55AB1D",
-      },
-      {
-        name: "Ocean Team",
-        data: this.fetchData(4),
-        color: "#28B4C8",
-      },
-    ];
-  },
-  computed: {
-    teamEfficiencyMessage() {
-      return provideLocalizationService(this).toLanguageString(
-        "teamEfficiency",
-        "Team Efficiency"
-      );
-    },
-    trendMessage() {
-      return provideLocalizationService(this).toLanguageString(
-        "trend",
-        "Trend"
-      );
-    },
-    volumeMessage() {
-      return provideLocalizationService(this).toLanguageString(
-        "volume",
-        "Volume"
-      );
-    },
-  },
-  methods: {
-    fetchData(team) {
-      return this.orders.map((dataItem) => {
-        if (
-          dataItem.teamID === team &&
-          dataItem.orderDate >= this.dateRange.start &&
-          dataItem.orderDate < this.dateRange.end
-        ) {
-          return dataItem.orderTotal;
-        }
-      });
-    },
-    buttonGroupClick(e, newIndex) {
-      this.selectedIndex = newIndex;
-    },
-    updateSeries() {
-      this.series.map((series, index) => {
-        return (series.data = this.fetchData(index + 1));
-      });
-    },
-    onFromDateChange(date) {
-      this.dateRange.start = date.value;
-      this.updateSeries();
-    },
-    onToDateChange(date) {
-      this.dateRange.end = date.value;
-      this.updateSeries();
-    },
-  },
+// Reactive state
+const selectedIndex = ref(0);
+const dateRange = ref({
+  start: new Date(2020, 0, 1),
+  end: new Date(2020, 4, 1),
+});
+const categories = ref([]);
+const series = ref([]);
+
+// Computed properties
+const teamEfficiencyMessage = computed(() => {
+  return provideLocalizationService(kendoLocalizationService).toLanguageString(
+    'teamEfficiency',
+    'Team Efficiency'
+  );
+});
+
+const trendMessage = computed(() => {
+  return provideLocalizationService(kendoLocalizationService).toLanguageString('trend', 'Trend');
+});
+
+const volumeMessage = computed(() => {
+  return provideLocalizationService(kendoLocalizationService).toLanguageString('volume', 'Volume');
+});
+
+// Methods
+const fetchData = (team) => {
+  return orders.map((dataItem) => {
+    if (
+      dataItem.teamID === team &&
+      dataItem.orderDate >= dateRange.value.start &&
+      dataItem.orderDate < dateRange.value.end
+    ) {
+      return dataItem.orderTotal;
+    }
+    return null;
+  }).filter(item => item !== null);
 };
+
+const buttonGroupClick = (e, newIndex) => {
+  selectedIndex.value = newIndex;
+};
+
+const updateSeries = () => {
+  series.value = series.value.map((series, index) => ({
+    ...series,
+    data: fetchData(index + 1),
+  }));
+};
+
+const onFromDateChange = (date) => {
+  dateRange.value.start = date.value;
+  updateSeries();
+};
+
+const onToDateChange = (date) => {
+  dateRange.value.end = date.value;
+  updateSeries();
+};
+
+// Lifecycle hook
+onMounted(() => {
+  categories.value = orders.map((dataItem) => dataItem.orderDate);
+  series.value = [
+    {
+      name: 'Tiger Team',
+      data: fetchData(1),
+      color: '#FF6358',
+    },
+    {
+      name: 'Lemon Team',
+      data: fetchData(2),
+      color: '#F7C62F',
+    },
+    {
+      name: 'Organic Team',
+      data: fetchData(3),
+      color: '#55AB1D',
+    },
+    {
+      name: 'Ocean Team',
+      data: fetchData(4),
+      color: '#28B4C8',
+    },
+  ];
+});
+
+// Templates
+const myToolTipTemplate = 'myToolTipTemplate';
+const myToolTipLineTemplate = 'myToolTipLineTemplate';
 </script>
 
 <style scoped>
@@ -296,6 +279,7 @@ export default {
   margin-inline-start: 0px;
   margin-inline-end: 0px;
 }
+
 .card-ranges {
   margin-top: 1rem;
   text-align: left;
